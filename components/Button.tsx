@@ -6,6 +6,9 @@ type ButtonProps = {
 } & TouchableOpacityProps;
 
 export const Button = forwardRef<View, ButtonProps>(({ title, ...touchableProps }, ref) => {
+  console.log("touchablePropsObj", {...touchableProps});
+  console.log("touchableProps", touchableProps);
+  
   return (
     <TouchableOpacity
       ref={ref}
