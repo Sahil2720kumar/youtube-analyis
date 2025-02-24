@@ -1,0 +1,10 @@
+# Supabase
+.branches
+.temp
+
+# dotenvx
+.env
+functions/trigger_collection_api/.env
+.env.keys
+.env.local
+.env.*.local
