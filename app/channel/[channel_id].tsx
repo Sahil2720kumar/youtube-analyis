@@ -1,11 +1,14 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { Image, Text, View, ScrollView, Pressable } from 'react-native';
+import { Button } from '~/components/Button';
 import { router } from 'expo-router';
-
+import { YT_VIDEOS_DATASET_ID } from '~/utils/constants';
 import { Container } from '~/components/Container';
 import { formatNumber } from '~/utils/formatNumber';
 import { supabase } from '~/lib/supabase';
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+
 
 const fetchChannelData = async (channel_id: string) => {
   const { data, error } = await supabase.from('yt_channels').select('*').eq('id', channel_id).single()
@@ -15,14 +18,31 @@ const fetchChannelData = async (channel_id: string) => {
   return data
 }
 
+const fetchVideosData = async (channel_id: string) => {
+  const { data, error } = await supabase.functions.invoke('trigger_collection_api', {
+    body: { input: [{ url: channel_id,num_of_posts:3,order_by:'Latest' }], dataset_id: YT_VIDEOS_DATASET_ID, extra_params: 'type=discover_new&discover_by=url' },
+  })
+  console.log("data: ", data);
+  return data
+}
+
 export default function Channel() {
   const { channel_id } = useLocalSearchParams();
+  const [isVideosCollecting, setIsVideosCollecting] = useState(false);
   // console.log("channel_id: ", channel_id);
-  
+
   const { data: channelData, error, isLoading } = useQuery({
     queryKey: ['channel', channel_id],
     queryFn: () => fetchChannelData(channel_id as string),
   })
+
+  const { data: videosData, error: videosError, isLoading: videosLoading } = useQuery({
+    queryKey: ['videos', channel_id],
+    queryFn: () => fetchVideosData(channel_id as string),
+    enabled: isVideosCollecting,
+  })
+
+  console.log("videosData: ", videosData);
 
   if (isLoading) {
     return (
@@ -54,7 +74,7 @@ export default function Channel() {
             <Text className="text-gray-600 text-center mb-4">
               {error?.message}
             </Text>
-            <Pressable 
+            <Pressable
               onPress={() => router.back()}
               className="bg-red-500 px-6 py-3 rounded-xl">
               <Text className="text-white font-medium">Go Back</Text>
@@ -116,7 +136,7 @@ export default function Channel() {
           </View>
 
           {/* Links Section */}
-          {channelData.Links.length > 0 && (
+          {channelData.Links?.length > 0 && (
             <View className="px-6 pb-6">
               <Text className="font-bold text-lg mb-3">Links</Text>
               {channelData.Links.map((link, index) => (
@@ -126,6 +146,32 @@ export default function Channel() {
               ))}
             </View>
           )}
+
+          {/* Collect videos */}
+          <View className="p-6 bg-gray-50 rounded-2xl mx-4 mb-6">
+            <View className="flex-row items-center justify-between mb-4">
+              <View>
+                <Text className="font-bold text-xl text-gray-800 mb-1">Collect Videos</Text>
+                <Text className="text-gray-600 text-sm">
+                  Fetch and analyze the latest videos from this channel
+                </Text>
+              </View>
+              <View className="h-12 w-12 bg-blue-100 rounded-full items-center justify-center">
+                <Text className="text-2xl">📥</Text>
+              </View>
+            </View>
+
+            <Button
+              className="bg-blue-500 shadow-sm "
+              pressedClassName="bg-blue-600"
+              title="Start Collection"
+              icon="arrow-right"
+              onPress={() => {
+                // setIsVideosCollecting(true);
+                fetchVideosData(channel_id as string);
+              }}
+            />
+          </View>
         </View>
       </ScrollView>
     </>

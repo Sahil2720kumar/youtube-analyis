@@ -5,9 +5,12 @@ import { Button } from '~/components/Button';
 import { ScreenContent } from '~/components/ScreenContent';
 import { supabase } from '~/lib/supabase';
 import { useQuery } from '@tanstack/react-query';
+import { YT_CHANNELS_DATASET_ID } from '~/utils/constants';
+
 
 export default function Home() {
   const [channelUrl, setChannelUrl] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const fetchRecentSearches = async () => {
     const { data, error } = await supabase.from('yt_channels').select('url,id').limit(4).order('created_at', { ascending: false });
     return data;
@@ -18,10 +21,10 @@ export default function Home() {
     queryFn: fetchRecentSearches,
   });
 
-  console.log('recentSearches: ', recentSearches);
   
   const startAnalyzing = async () => {
     try {
+      setIsAnalyzing(true); 
       if (channelUrl === '') {
         return;
       }
@@ -44,18 +47,21 @@ export default function Home() {
         
         console.log('channelData: ', channelData);
         router.push(`/channel/${channelData.id}`);
+        setIsAnalyzing(false);
         return;
       }
       
       console.log('startAnalyzing channelUrl: ', channelUrl);
       const { data, error } = await supabase.functions.invoke('trigger_collection_api', {
-        body: { url: channelUrl },
+        body: { input: [{ url: channelUrl }], dataset_id: YT_CHANNELS_DATASET_ID },
       });
 
       if (error) {
         throw new Error(error);
+        setIsAnalyzing(false);
       }
       router.push(`/job/${data.id}`);
+      setIsAnalyzing(false);
       // router.push(`/channel/UCX6OQ3DkcsbYNE6H8uQQuVA`);
     } catch (error) {
       console.log('error', error);
@@ -96,7 +102,8 @@ export default function Home() {
               autoCorrect={false}
             />
             <Button
-              title="Analyze Channel"
+              disabled={isAnalyzing}
+              title={isAnalyzing ? 'Analyzing...' : 'Analyze Channel'}
               onPress={startAnalyzing}
               className="rounded-xl bg-red-500 bg-gradient-to-r from-red-600 to-red-500 py-4"
             />
