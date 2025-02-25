@@ -22,7 +22,10 @@ Deno.serve(async (req) => {
 
   // const response = await fetch(`https://api.brightdata.com/datasets/v3/trigger?dataset_id=${dataset_id}&endpoint=https://hmewkaalrgzmwttwhznh.supabase.co/functions/v1/trigger_collection_webhook&format=json&uncompressed_webhook=true&include_errors=true&${extra_params}`, options)
   const response = await fetch(`https://api.brightdata.com/datasets/v3/trigger?dataset_id=${dataset_id}&endpoint=https://hmewkaalrgzmwttwhznh.supabase.co/functions/v1/trigger_collection_webhook&format=json&uncompressed_webhook=true&include_errors=true&${extra_params}`, options)
-  
+  console.log("url: ", `https://api.brightdata.com/datasets/v3/trigger?dataset_id=${dataset_id}&endpoint=https://hmewkaalrgzmwttwhznh.supabase.co/functions/v1/trigger_collection_webhook&format=json&uncompressed_webhook=true&include_errors=true&${extra_params}`)
+  console.log("response: ", response)
+  console.log("response.ok: ", extra_params)
+  console.log("response.input: ", input)
   if (!response.ok) {
     return new Response(JSON.stringify({ error: 'Failed to trigger collection',status:response.status }), { status: 200 })
   }

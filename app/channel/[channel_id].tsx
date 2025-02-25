@@ -18,9 +18,9 @@ const fetchChannelData = async (channel_id: string) => {
   return data
 }
 
-const fetchVideosData = async (channel_id: string) => {
+const fetchVideosData = async (channel_url: string) => {
   const { data, error } = await supabase.functions.invoke('trigger_collection_api', {
-    body: { input: [{ url: channel_id,num_of_posts:3,order_by:'Latest' }], dataset_id: YT_VIDEOS_DATASET_ID, extra_params: 'type=discover_new&discover_by=url' },
+    body: { input: [{ url: channel_url, num_of_posts: 3, order_by: 'Latest' }], dataset_id: YT_VIDEOS_DATASET_ID, extra_params: 'type=discover_new&discover_by=url' },
   })
   console.log("data: ", data);
   return data
@@ -38,7 +38,7 @@ export default function Channel() {
 
   const { data: videosData, error: videosError, isLoading: videosLoading } = useQuery({
     queryKey: ['videos', channel_id],
-    queryFn: () => fetchVideosData(channel_id as string),
+    queryFn: () => fetchVideosData(channelData.url),
     enabled: isVideosCollecting,
   })
 
@@ -168,7 +168,8 @@ export default function Channel() {
               icon="arrow-right"
               onPress={() => {
                 // setIsVideosCollecting(true);
-                fetchVideosData(channel_id as string);
+                // fetchVideosData(channelData.url);
+                router.push(`/channel/videos?channel_id=${channel_id}`);
               }}
             />
           </View>
