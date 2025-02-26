@@ -18,12 +18,33 @@ const fetchChannelData = async (channel_id: string) => {
   return data
 }
 
-const fetchVideosData = async (channel_url: string) => {
-  const { data, error } = await supabase.functions.invoke('trigger_collection_api', {
-    body: { input: [{ url: channel_url, num_of_posts: 3, order_by: 'Latest' }], dataset_id: YT_VIDEOS_DATASET_ID, extra_params: 'type=discover_new&discover_by=url' },
-  })
-  console.log("data: ", data);
-  return data
+const fetchVideosData = async (channel_url: string,channel_id: string, setIsVideosCollecting: (isVideosCollecting: boolean) => void) => {
+  try {
+    const { data: videosData, error: videosError } = await supabase.from('yt_videos').select('youtuber_id').eq('youtuber_id', channel_id)
+    if (videosError) {
+      console.log("videos error: ", videosError);
+      throw videosError
+    }
+    if(videosData && videosData.length > 0){ 
+      console.log("videos data: ", videosData); 
+      router.push(`/channel/videos/?channel_id=${channel_id}`)
+      setIsVideosCollecting(false);
+      return;
+    }
+ 
+    const { data, error } = await supabase.functions.invoke('trigger_collection_api', {
+      body: { input: [{ url: channel_url, num_of_posts: 2, order_by: 'Latest' }], dataset_id: YT_VIDEOS_DATASET_ID, extra_params: 'type=discover_new&discover_by=url' },
+    })
+    
+    console.log("fetchVideosData data: ", data);
+    setIsVideosCollecting(false);
+    router.push(`/job/${data.id}?type=videos`);
+    return data
+  } catch (error) {
+    console.log("fetchVideosData error: ", error);
+    setIsVideosCollecting(false);
+    return error
+  }
 }
 
 export default function Channel() {
@@ -36,13 +57,6 @@ export default function Channel() {
     queryFn: () => fetchChannelData(channel_id as string),
   })
 
-  const { data: videosData, error: videosError, isLoading: videosLoading } = useQuery({
-    queryKey: ['videos', channel_id],
-    queryFn: () => fetchVideosData(channelData.url),
-    enabled: isVideosCollecting,
-  })
-
-  console.log("videosData: ", videosData);
 
   if (isLoading) {
     return (
@@ -129,7 +143,7 @@ export default function Channel() {
             <Text className="text-gray-800 leading-6">{channelData.Description}</Text>
             <View className="mt-4 flex-row items-center">
               <Text className="text-gray-600 mr-2">📍</Text>
-              <Text className="text-gray-600">{channelData.Details.location}</Text>
+              <Text className="text-gray-600">{channelData?.Details?.location}</Text>
               <Text className="text-gray-600 mx-2">•</Text>
               <Text className="text-gray-600">Joined {new Date(channelData.created_date).getFullYear()}</Text>
             </View>
@@ -163,13 +177,14 @@ export default function Channel() {
 
             <Button
               className="bg-blue-500 shadow-sm "
+              disabled={isVideosCollecting}
               pressedClassName="bg-blue-600"
-              title="Start Collection"
+              title={isVideosCollecting ? "Collecting..." : "Start Collection"}
               icon="arrow-right"
               onPress={() => {
-                // setIsVideosCollecting(true);
-                // fetchVideosData(channelData.url);
-                router.push(`/channel/videos?channel_id=${channel_id}`);
+                setIsVideosCollecting(true);
+                fetchVideosData(channelData.url,channel_id as string, setIsVideosCollecting);
+                // router.push(`/channel/videos?channel_id=${channel_id}`);
               }}
             />
           </View>
