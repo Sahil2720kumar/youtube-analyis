@@ -18,7 +18,6 @@ const fetchVideosData = async (channel_id: string) => {
 
 const VideosPage = () => {
   const { channel_id } = useLocalSearchParams()
-  console.log("channel_id: ", channel_id)
   const { data: videosData, error, isLoading } = useQuery({
     queryKey: ['videos', channel_id],
     queryFn: () => fetchVideosData(channel_id as string),

@@ -1,21 +1,24 @@
 import { View, Text, Image, ScrollView, TouchableOpacity } from 'react-native'
 import { useLocalSearchParams, Stack } from 'expo-router'
-import React from 'react'
+import React, { useState } from 'react'
 import { formatNumber } from '~/utils/formatNumber'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '~/lib/supabase'
 import { router } from 'expo-router'
+import YoutubePlayer from 'react-native-youtube-iframe';
+
 
 const getVideoById = async (video_id: string) => {
   const { data, error } = await supabase.from('yt_videos').select('*,yt_channels(subscribers,profile_image,handle,name)').eq('id', video_id).single()
-  // console.log("data: ", data);
   return data
 }
 
 
 const VideoSpecificPage = () => {
   const { video_id } = useLocalSearchParams()
-  const {data:videoData,isLoading,error} = useQuery({
+  const [playing, setPlaying] = useState(false);
+
+  const { data: videoData, isLoading, error } = useQuery({
     queryKey: ['video', video_id],
     queryFn: () => getVideoById(video_id as string)
   })
@@ -32,7 +35,7 @@ const VideoSpecificPage = () => {
             <Text className="text-gray-600 text-center">
               Please wait while we prepare your video content...
             </Text>
-            
+
           </View>
         </View>
       </View>
@@ -72,13 +75,21 @@ const VideoSpecificPage = () => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
   }
 
+  const onStateChange = (state: string) => {
+    if (state === 'playing') {
+      setPlaying(true);
+    } else if (state === 'paused') {
+      setPlaying(false);
+    }
+  }
+
   // Format date to relative time
   const getRelativeTime = (dateString: string) => {
     const date = new Date(dateString)
     const now = new Date()
     const diff = now.getTime() - date.getTime()
     const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-    
+
     if (days === 0) return 'Today'
     if (days === 1) return 'Yesterday'
     if (days < 7) return `${days} days ago`
@@ -93,13 +104,14 @@ const VideoSpecificPage = () => {
         title: video?.yt_channels?.name.toUpperCase(),
         headerTitleStyle: { fontSize: 16 }
       }} />
-      
+
       {/* Video Preview */}
       <View className="relative w-full aspect-video bg-black">
-        <Image 
-          source={{ uri: video?.preview_image }}
-          className="w-full h-full"
-          resizeMode="cover"
+        <YoutubePlayer
+          height={300}
+          play={playing}
+          videoId={video?.id}
+          onChangeState={onStateChange}
         />
         <View className="absolute bottom-4 right-4 bg-black/75 px-2.5 py-1 rounded-lg">
           <Text className="text-white font-medium">
@@ -115,7 +127,7 @@ const VideoSpecificPage = () => {
           <Text className="text-xl font-bold text-gray-900 mb-3">
             {video?.title}
           </Text>
-          
+
           <View className="flex-row items-center justify-between mb-4">
             <View className="flex-row items-center">
               <Text className="text-gray-700 font-semibold">
@@ -133,7 +145,7 @@ const VideoSpecificPage = () => {
 
           {/* Channel Info */}
           <TouchableOpacity onPress={() => router.push(`/channel/${video?.youtuber_id}`)} className="flex-row items-center mb-4">
-            <Image 
+            <Image
               source={{ uri: video?.yt_channels?.profile_image }}
               className="w-12 h-12 rounded-full"
             />
