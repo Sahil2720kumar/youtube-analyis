@@ -61,7 +61,6 @@ const JobPage = () => {
 
   useEffect(() => {
     console.log("useEffect called");
-    
     const channels = supabase.channel('supabase_realtime')
       .on(
         'postgres_changes',

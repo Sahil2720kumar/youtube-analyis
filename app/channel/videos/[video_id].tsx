@@ -6,6 +6,8 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '~/lib/supabase'
 import { router } from 'expo-router'
 import YoutubePlayer from 'react-native-youtube-iframe';
+import VideoAnalysisButton from '~/components/VideoAnalysisButton';
+import { MaterialIcons } from '@expo/vector-icons';
 
 
 const getVideoById = async (video_id: string) => {
@@ -166,6 +168,8 @@ const VideoSpecificPage = () => {
             </View>
           </TouchableOpacity>
 
+
+
           {/* Engagement Stats */}
           <View className="flex-row justify-between bg-gray-50 p-4 rounded-xl">
             <View className="items-center">
@@ -189,6 +193,40 @@ const VideoSpecificPage = () => {
           </View>
         </View>
 
+        {/* Video Analysis Button */}
+        {video?.transcript && (
+          <VideoAnalysisButton videoId={video?.id} className="mt-4" />
+        )}
+
+        {video?.ai_summary && (
+          <View className="bg-white rounded-2xl p-5 mt-4 shadow-md">
+            <Text className="text-lg font-bold text-gray-900 mb-3">
+              AI Summary
+            </Text>
+            <Text className="text-gray-700 leading-6">
+              {video?.ai_summary}
+            </Text>
+          </View>
+        )}
+
+        {video?.ai_topics && (
+          <View className="bg-white rounded-2xl p-5 mt-4 shadow-md">
+            <Text className="text-lg font-bold text-gray-900 mb-3">
+              AI Topics
+            </Text>
+            <View className="text-gray-700 leading-6">
+              {video?.ai_topics.map((topic: string, index: number) => (
+                <View key={index} className="flex-row items-center">  
+                  <Text key={index} className="text-gray-700 leading-6">
+                    {index + 1}. {topic}
+                  </Text>
+                  <MaterialIcons className="ml-2" name="check-circle" size={20} color="green" />
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
         {/* Description Section */}
         <View className="bg-white rounded-2xl p-5 mt-4 shadow-md">
           <Text className="text-lg font-bold text-gray-900 mb-3">
@@ -210,6 +248,9 @@ const VideoSpecificPage = () => {
             </Text>
           </View>
         )}
+
+
+
       </View>
     </ScrollView>
   )
