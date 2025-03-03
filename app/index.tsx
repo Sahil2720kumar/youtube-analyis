@@ -44,13 +44,12 @@ export default function Home() {
       const { data: channelData, error: channelError } = await supabase.from('yt_channels').select("id").eq('handle', "@"+channelHandle).single();
 
       if (channelData) {
-        
         console.log('channelData: ', channelData);
         router.push(`/channel/${channelData.id}`);
         setIsAnalyzing(false);
         return;
       }
-      
+       
       console.log('startAnalyzing channelUrl: ', channelUrl);
       const { data, error } = await supabase.functions.invoke('trigger_collection_api', {
         body: { input: [{ url: channelUrl }], dataset_id: YT_CHANNELS_DATASET_ID },

@@ -12,6 +12,7 @@ interface VideoAnalysisButtonProps {
   isLoading?: boolean
   gradientColors?: string[]
   className?: string
+  videoId?:string
 }
 
 const VideoAnalysisButton: React.FC<VideoAnalysisButtonProps> = ({

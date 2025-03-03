@@ -139,7 +139,8 @@ export default function Channel() {
           </View>
 
           {/* Description Section */}
-          <View className="p-6">
+        
+          <View className="p-6 ">
             <Text className="text-gray-800 leading-6">{channelData.Description}</Text>
             <View className="mt-4 flex-row items-center">
               <Text className="text-gray-600 mr-2">📍</Text>
