@@ -1,20 +1,24 @@
 import { router, Stack } from 'expo-router';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '~/components/Button';
 import { ScreenContent } from '~/components/ScreenContent';
 import { supabase } from '~/lib/supabase';
 import { useQuery } from '@tanstack/react-query';
 import { YT_CHANNELS_DATASET_ID } from '~/utils/constants';
+import LottieView from 'lottie-react-native';
+import AnimatedSplashScreen from '~/components/AnimatedSplashScreen';
+
+
+const fetchRecentSearches = async () => {
+  const { data, error } = await supabase.from('yt_channels').select('url,id').limit(4).order('created_at', { ascending: false });
+  return data;
+}
 
 
 export default function Home() {
   const [channelUrl, setChannelUrl] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const fetchRecentSearches = async () => {
-    const { data, error } = await supabase.from('yt_channels').select('url,id').limit(4).order('created_at', { ascending: false });
-    return data;
-  }
 
   const { data: recentSearches, isLoading: recentSearchesLoading, error: recentSearchesError } = useQuery({
     queryKey: ['recentSearches'],
@@ -69,6 +73,7 @@ export default function Home() {
       console.log('error', error);
     }
   };
+
 
   return (
     <>

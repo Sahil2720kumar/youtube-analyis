@@ -149,6 +149,7 @@ const VideoSpecificPage = () => {
   const fetchCommentsData = async () => {
     try {
       setIsCommmentsCollecting(true);
+      //fetch comments data
       const { data: commentData, error: commentError } = await supabase
         .from('yt_comments')
         .select('id')
