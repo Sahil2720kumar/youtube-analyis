@@ -21,15 +21,18 @@ export default function Home() {
     queryFn: fetchRecentSearches,
   });
 
-  
+
   const startAnalyzing = async () => {
     try {
-      setIsAnalyzing(true); 
+      setIsAnalyzing(true);
       if (channelUrl === '') {
+        setIsAnalyzing(false)
         return;
       }
 
-      if (!channelUrl.includes('https://www.youtube.com/')) {
+      const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(@[a-zA-Z0-9_]+|c\/|channel\/|user\/)?[a-zA-Z0-9_-]+|youtu\.be\/[a-zA-Z0-9_-]+)/;
+      if (!youtubeRegex.test(channelUrl)) {
+        setIsAnalyzing(false)
         alert('Please enter a valid YouTube channel URL');
         return;
       }
@@ -38,10 +41,10 @@ export default function Home() {
       const channelHandle = channelUrl.split('@')[1].split('/')[0];
       // if (channelHandle || !channelHandle) {
       //   console.log(channelHandle);
-        
+
       //   return;
       // }
-      const { data: channelData, error: channelError } = await supabase.from('yt_channels').select("id").eq('handle', "@"+channelHandle).single();
+      const { data: channelData, error: channelError } = await supabase.from('yt_channels').select("id").eq('handle', "@" + channelHandle).single();
 
       if (channelData) {
         console.log('channelData: ', channelData);
@@ -49,7 +52,7 @@ export default function Home() {
         setIsAnalyzing(false);
         return;
       }
-       
+
       console.log('startAnalyzing channelUrl: ', channelUrl);
       const { data, error } = await supabase.functions.invoke('trigger_collection_api', {
         body: { input: [{ url: channelUrl }], dataset_id: YT_CHANNELS_DATASET_ID },
@@ -146,10 +149,10 @@ export default function Home() {
           <Text className="mb-6 text-2xl font-bold text-gray-800">Popular Channels</Text>
           <View className="gap-y-4">
             {[
-              { profile_img:"https://yt3.googleusercontent.com/nxYrc_1_2f77DoBadyxMTmv7ZpRZapHR5jbuYe7PlPd5cIRJxtNNEYyOC0ZsxaDyJJzXrnJiuDE=s160-c-k-c0x00ffffff-no-rj",id: 'UCX6OQ3DkcsbYNE6H8uQQuVA', name: 'MrBeast', handle: '@MrBeast', subscribers: '350M+', url: 'https://www.youtube.com/@MrBeast' },
-              { profile_img:"https://yt3.googleusercontent.com/vik8mAiwHQbXiFyKfZ3__p55_VBdGvwxPpuPJBBwdbF0PjJxikXhrP-C3nLQAMAxGNd_-xQCIg=s160-c-k-c0x00ffffff-no-rj",id: 'UC-lHJZR3Gqxm24_Vd_AJ5Yw', name: 'PewDiePie', handle: '@PewDiePie', subscribers: '111M+', url: 'https://www.youtube.com/@PewDiePie' },
-              { profile_img:"https://yt3.googleusercontent.com/ytc/AIdro_nfDvwu14-iN5YZcaLIomwno1_3oFcYTmG5_kn7SMj_nec=s160-c-k-c0x00ffffff-no-rj",id: 'UC7_YxT-KID8kRbqZo7MyscQ', name: 'Markiplier', handle: '@markiplier', subscribers: '35M+', url: 'https://www.youtube.com/@markiplier' },
-              { profile_img:"https://yt3.googleusercontent.com/VdNMLGk6QNH3gRusX4H3drUDqTb0NxbQp9NLU7tOVY1U_Qy0ah8TK1NviXBwYyikhl89Zzg3=s160-c-k-c0x00ffffff-no-rj",id: 'UCYSa_YLoJokZAwHhlwJntIA', name: 'notjustdev', handle: '@notjustdev', subscribers: '120K+', url: 'https://www.youtube.com/@notjustdev' },
+              { profile_img: "https://yt3.googleusercontent.com/nxYrc_1_2f77DoBadyxMTmv7ZpRZapHR5jbuYe7PlPd5cIRJxtNNEYyOC0ZsxaDyJJzXrnJiuDE=s160-c-k-c0x00ffffff-no-rj", id: 'UCX6OQ3DkcsbYNE6H8uQQuVA', name: 'MrBeast', handle: '@MrBeast', subscribers: '350M+', url: 'https://www.youtube.com/@MrBeast' },
+              { profile_img: "https://yt3.googleusercontent.com/vik8mAiwHQbXiFyKfZ3__p55_VBdGvwxPpuPJBBwdbF0PjJxikXhrP-C3nLQAMAxGNd_-xQCIg=s160-c-k-c0x00ffffff-no-rj", id: 'UC-lHJZR3Gqxm24_Vd_AJ5Yw', name: 'PewDiePie', handle: '@PewDiePie', subscribers: '111M+', url: 'https://www.youtube.com/@PewDiePie' },
+              { profile_img: "https://yt3.googleusercontent.com/ytc/AIdro_nfDvwu14-iN5YZcaLIomwno1_3oFcYTmG5_kn7SMj_nec=s160-c-k-c0x00ffffff-no-rj", id: 'UC7_YxT-KID8kRbqZo7MyscQ', name: 'Markiplier', handle: '@markiplier', subscribers: '35M+', url: 'https://www.youtube.com/@markiplier' },
+              { profile_img: "https://yt3.googleusercontent.com/VdNMLGk6QNH3gRusX4H3drUDqTb0NxbQp9NLU7tOVY1U_Qy0ah8TK1NviXBwYyikhl89Zzg3=s160-c-k-c0x00ffffff-no-rj", id: 'UCYSa_YLoJokZAwHhlwJntIA', name: 'notjustdev', handle: '@notjustdev', subscribers: '120K+', url: 'https://www.youtube.com/@notjustdev' },
             ].map((channel, index) => (
               <TouchableOpacity
                 key={index}

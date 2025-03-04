@@ -1,8 +1,8 @@
-import { View, Text, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, Image, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import React, { useState } from 'react';
 import { formatNumber } from '~/utils/formatNumber';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '~/lib/supabase';
 import { router } from 'expo-router';
 import YoutubePlayer from 'react-native-youtube-iframe';
@@ -11,6 +11,23 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Button } from '~/components/Button';
 import { YT_COMMENTS_DATASET_ID } from '~/utils/constants';
 
+// Add these types and test data near the top of the file
+type MessageType = {
+  id: string;
+  content: string;
+  role: 'assistant' | 'user';
+  timestamp: Date;
+};
+
+const initialMessages: MessageType[] = [
+  {
+    id: '1',
+    content: 'Hi! I can help you understand this video better. What would you like to know?',
+    role: 'assistant',
+    timestamp: new Date('2024-03-10T10:00:00'),
+  }
+];
+
 const getVideoById = async (video_id: string) => {
   const { data, error } = await supabase
     .from('yt_videos')
@@ -18,6 +35,15 @@ const getVideoById = async (video_id: string) => {
     .eq('id', video_id)
     .single();
   return data;
+};
+
+const getMessagesByVideoId = async (video_id: string) => {
+  const { data: fetchMessagesData, error: fetchMessagesDataError } = await supabase
+    .from('messages')
+    .select('*, conversations!inner(video_id)') // Join with conversations table
+    .eq('conversations.video_id', video_id); // Filter by video_id in conversations table
+
+  return fetchMessagesData;
 };
 
 // Format date to relative time
@@ -46,6 +72,9 @@ const VideoSpecificPage = () => {
   const { video_id } = useLocalSearchParams();
   const [playing, setPlaying] = useState(false);
   const [isCommentsCollecting, setIsCommmentsCollecting] = useState(false);
+  const [messages, setMessages] = useState<MessageType[]>(initialMessages);
+  const [inputMessage, setInputMessage] = useState('');
+  const queryClient = useQueryClient();
 
   const {
     data: videoData,
@@ -54,6 +83,15 @@ const VideoSpecificPage = () => {
   } = useQuery({
     queryKey: ['video', video_id],
     queryFn: () => getVideoById(video_id as string),
+  });
+
+  const {
+    data: messageData,
+    isLoading: isMessageDataLoading,
+    error: messageDataError,
+  } = useQuery({
+    queryKey: ['messages', video_id],
+    queryFn: () => getMessagesByVideoId(video_id as string),
   });
 
   if (isLoading) {
@@ -141,6 +179,35 @@ const VideoSpecificPage = () => {
     } catch (error) {
       console.log('this is comments error', error);
     }
+  };
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim()) return;
+
+    const newMessage: MessageType = {
+      id: Date.now().toString(),
+      content: inputMessage,
+      role: 'user',
+      timestamp: new Date(),
+    };
+
+    setMessages([...messages, newMessage]);
+    setInputMessage('');
+
+    //  AI response
+    const { data, error } = await supabase.functions.invoke('ai_chat_bot', {
+      body: {
+        messages: [...messages, newMessage],
+        videoData: video,
+        newMessage: newMessage,
+      },
+    });
+    if (error) {
+      console.error('Error sending message to ai: ', error);
+      throw new Error(error);
+    }
+    console.log('Video analysis: ', data);
+    queryClient.invalidateQueries({ queryKey: ['messages', video_id] });
   };
 
   return (
@@ -238,7 +305,81 @@ const VideoSpecificPage = () => {
             disabled={isCommentsCollecting}
             onPress={() => fetchCommentsData()}
             title={`${isCommentsCollecting ? 'Comments Collecting...' : 'Comments'}`}
-            className="w-[90%] bg-[#6C63FF]"></Button>
+            className="w-[90%] bg-[#6C63FF]" />
+        </View>
+
+        {/* AI Chat Section */}
+        <View className="mt-4 rounded-2xl bg-white p-5 shadow-md">
+          <View className="mb-4 flex-row items-center justify-between">
+            <Text className="text-lg font-bold text-gray-900">AI Chat Assistant</Text>
+            <View className="flex-row items-center rounded-full bg-green-100 px-3 py-1">
+              <View className="mr-2 h-2 w-2 rounded-full bg-green-500" />
+              <Text className="text-sm font-medium text-green-700">Online</Text>
+            </View>
+          </View>
+
+          {/* Chat Messages Container */}
+          <ScrollView className="mb-4">
+            <View className="gap-y-4">
+              <View
+                key={"initial_messages"}
+                className={`flex-row ${initialMessages[0].role === 'user' ? 'justify-end' : ''}`}>
+                {initialMessages[0].role === 'assistant' && (
+                  <View className="h-8 w-8 rounded-full bg-blue-100">
+                    <Text className="m-auto">🤖</Text>
+                  </View>
+                )}
+                <View
+                  className={`${initialMessages[0].role === 'assistant'
+                    ? 'ml-3 flex-1 rounded-2xl rounded-tl-none bg-blue-50'
+                    : 'mr-3 flex-1 rounded-2xl rounded-tr-none bg-gray-100'
+                    } p-4`}>
+                  <Text className="text-gray-800">{initialMessages[0].content}</Text>
+                </View>
+
+              </View>
+              {messageData?.map((message) => (
+                <View
+                  key={message.id}
+                  className={`flex-row ${message.role === 'user' ? 'justify-end' : ''}`}>
+                  {message.role === 'assistant' && (
+                    <View className="h-8 w-8 rounded-full bg-blue-100">
+                      <Text className="m-auto">🤖</Text>
+                    </View>
+                  )}
+                  <View
+                    className={`${message.role === 'assistant'
+                      ? 'ml-3 flex-1 rounded-2xl rounded-tl-none bg-blue-50'
+                      : 'mr-3 flex-1 rounded-2xl rounded-tr-none bg-gray-100'
+                      } p-4`}>
+                    <Text className="text-gray-800">{message.content}</Text>
+                  </View>
+                  {message.role === 'user' && (
+                    <View className="h-8 w-8 rounded-full bg-gray-200">
+                      <Text className="m-auto">👤</Text>
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
+          </ScrollView>
+
+          {/* Input Section */}
+          <View className="flex-row items-center space-x-2">
+            <View className="flex-1 rounded-full border border-gray-300 bg-gray-50 px-4 py-2">
+              <TextInput
+                value={inputMessage}
+                onChangeText={setInputMessage}
+                placeholder="Ask anything about the video..."
+                placeholderTextColor="#9CA3AF"
+                className="text-gray-900"
+                onSubmitEditing={handleSendMessage}
+              />
+            </View>
+            <TouchableOpacity className="rounded-full bg-blue-500 p-2" onPress={handleSendMessage}>
+              <MaterialIcons name="send" size={24} color="white" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {video?.ai_summary && (
