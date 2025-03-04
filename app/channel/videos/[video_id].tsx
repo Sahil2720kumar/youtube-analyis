@@ -153,7 +153,6 @@ const VideoSpecificPage = () => {
         .from('yt_comments')
         .select('id')
         .eq('url', video?.url)
-        .single();
 
       if (commentData) {
         console.log('commentsdata: ', commentData);
@@ -173,7 +172,7 @@ const VideoSpecificPage = () => {
       if (error) {
         throw new Error(error);
       }
-      // console.log('fetchCommentsData data: ', data);
+      console.log('fetchCommentsData data: ', data);
       setIsCommmentsCollecting(false);
       router.push(`/job/${data.id}?type=comments&video_url=${video?.url}`);
     } catch (error) {
@@ -206,7 +205,7 @@ const VideoSpecificPage = () => {
       console.error('Error sending message to ai: ', error);
       throw new Error(error);
     }
-    console.log('Video analysis: ', data);
+    console.log('chat response: ', data);
     queryClient.invalidateQueries({ queryKey: ['messages', video_id] });
   };
 
