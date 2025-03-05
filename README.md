@@ -1,20 +1,15 @@
 # YT Analysis - YouTube Channel Analytics App
 
-<p align="center">
+<p style="text-align: center;">
   <img src="./assets/icon.png" alt="YT Analysis Logo" width="80" />
 </p>
 
-<div class="flex items-center justify-center flex-row">
-<p align="center">
-  <img src="./assets/Frame 1.png" alt="AI Chat" width="300"/>
-</p>
-<p align="center">
-  <img src="./assets/Frame 2.png" alt="AI Chat" width="300"/>
-</p>
-<p align="center">
-  <img src="./assets/Frame 3.png" alt="AI Chat" width="300"/>
-</p>
+<div style="display: flex; justify-content: center; align-items: center;">
+  <img src="./assets/Frame 1.png" alt="AI Chat" width="300" style="margin: 10px;"/>
+  <img src="./assets/Frame 2.png" alt="AI Chat" width="300" style="margin: 10px;"/>
+  <img src="./assets/Frame 3.png" alt="AI Chat" width="300" style="margin: 10px;"/>
 </div>
+
 
 YT Analysis is a powerful mobile application that provides comprehensive analytics and insights for YouTube channels. Built with React Native and Expo, it offers an intuitive interface to analyze channel performance, video metrics, and audience engagement.
 
