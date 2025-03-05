@@ -1,10 +1,10 @@
 # YT Analysis - YouTube Channel Analytics App
 
 <p align="center">
-  <img src="./assets/icon.png" alt="YT Analysis Logo" width="20" height="20"/>
+  <img src="./assets/icon.png" alt="YT Analysis Logo" width="80" />
 </p>
 
-<div>
+<div class="flex items-center justify-center flex-row">
 <p align="center">
   <img src="./assets/Frame 1.png" alt="AI Chat" width="300"/>
 </p>
