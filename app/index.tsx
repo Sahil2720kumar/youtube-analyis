@@ -34,7 +34,9 @@ export default function Home() {
         return;
       }
 
-      const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(@[a-zA-Z0-9_]+|c\/|channel\/|user\/)?[a-zA-Z0-9_-]+|youtu\.be\/[a-zA-Z0-9_-]+)/;
+      const youtubeRegex =
+        /^(https?:\/\/)?(www\.|m\.)?(youtube\.com\/(@[a-zA-Z0-9_]+|c\/|channel\/|user\/)?[a-zA-Z0-9_-]+|youtu\.be\/[a-zA-Z0-9_-]+)/i;
+      // Added "m\." here ↗
       if (!youtubeRegex.test(channelUrl)) {
         setIsAnalyzing(false)
         alert('Please enter a valid YouTube channel URL');
@@ -42,13 +44,20 @@ export default function Home() {
       }
 
       // https://www.youtube.com/@jaidenanimations/about
-      const channelHandle = channelUrl.split('@')[1].split('/')[0];
-      // if (channelHandle || !channelHandle) {
-      //   console.log(channelHandle);
+      const extractHandle = (url: string) => {
+        const match = url.match(/@([^\/?]+)/);
+        return match ? match[1] : null; // Returns "ChannelHandle" or null
+      };
 
-      //   return;
-      // }
-      const { data: channelData, error: channelError } = await supabase.from('yt_channels').select("id").eq('handle', "@" + channelHandle).single();
+      const channelHandle = extractHandle(channelUrl);
+
+      console.log("channelhandle", channelHandle);
+
+      const { data: channelData, error: channelError } = await supabase
+        .from('yt_channels')
+        .select('id')
+        .ilike('handle', `@${channelHandle}`) // Case-insensitive exact match
+        .single();
 
       if (channelData) {
         console.log('channelData: ', channelData);
@@ -66,10 +75,11 @@ export default function Home() {
         throw new Error(error);
         setIsAnalyzing(false);
       }
-      router.push(`/job/${data.id}`);
+      router.push(`/job/${data.id}?type=channel`);
       setIsAnalyzing(false);
       // router.push(`/channel/UCX6OQ3DkcsbYNE6H8uQQuVA`);
     } catch (error) {
+      setIsAnalyzing(false)
       console.log('error', error);
     }
   };

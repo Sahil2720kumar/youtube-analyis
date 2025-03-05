@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "frontend",
-    "slug": "frontend",
+    "name": "YT analysis",
+    "slug": "YT_analysis",
     "version": "1.0.0",
-    "scheme": "frontend",
+    "scheme": "YT_analysis",
     "web": {
       "bundler": "metro",
       "output": "static",
@@ -18,9 +18,7 @@
     },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-
     "userInterfaceStyle": "light",
-
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -37,14 +35,14 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.sahilkr2909.frontend"
+      "package": "com.sahilkr2909.YT_analysis"
     },
     "extra": {
       "router": {
         "origin": false
       },
       "eas": {
-        "projectId": "a2d1ff98-0e73-44b3-b559-cddbee9defc9"
+        "projectId": "1932d29e-6eb7-4323-8f00-7fc6a1c1e42b"
       }
     }
   }
